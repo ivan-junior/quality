@@ -136,7 +136,7 @@ export const seedCustomers: Customer[] = [
   {
     id: 'cust_013',
     name: 'Sarah Codognoto',
-    document: '486.159.357-32',
+    document: '000.000.000-00',
     phone: '(16) 98111-2233',
     whatsapp: '(16) 98111-2233',
     email: 'sarah.codognoto@email.com',
