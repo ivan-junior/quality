@@ -1,0 +1,8 @@
+export { customerService } from './customerService'
+export { vehicleService } from './vehicleService'
+export { productService, getStockStatus } from './productService'
+export { serviceCatalogService } from './serviceCatalogService'
+export { serviceOrderService } from './serviceOrderService'
+export { stockService } from './stockService'
+export { searchService } from './searchService'
+export { resetDemoData, ensureDatabase } from '@/mocks'
