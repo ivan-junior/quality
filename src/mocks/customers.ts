@@ -135,11 +135,11 @@ export const seedCustomers: Customer[] = [
   },
   {
     id: 'cust_013',
-    name: 'Amanda Ribeiro',
+    name: 'Sarah Codognoto',
     document: '486.159.357-32',
     phone: '(16) 98111-2233',
     whatsapp: '(16) 98111-2233',
-    email: 'amanda.ribeiro@email.com',
+    email: 'sarah.codognoto@email.com',
     notes: '',
     createdAt: '2025-04-05T10:00:00.000Z',
     lastServiceAt: '2026-07-08T09:00:00.000Z',
