@@ -84,10 +84,15 @@ export function ServiceOrderNewPage() {
     discount: 0,
   })
 
-  const customers = useMemo(
-    () => customerService.search(customerQuery).slice(0, 8),
-    [customerQuery, selectedCustomer],
-  )
+  const customers = useMemo(() => {
+    const DEMO_CUSTOMER_ID = 'cust_013' // Sarah Codognoto — sempre primeiro na demo
+    const results = customerService.search(customerQuery)
+    const demoCustomer = results.find((c) => c.id === DEMO_CUSTOMER_ID)
+    const others = results.filter((c) => c.id !== DEMO_CUSTOMER_ID)
+    return demoCustomer
+      ? [demoCustomer, ...others].slice(0, 8)
+      : results.slice(0, 8)
+  }, [customerQuery, selectedCustomer])
   const customerVehicles = selectedCustomer
     ? vehicleService.getByCustomer(selectedCustomer.id)
     : []
