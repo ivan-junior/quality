@@ -1,6 +1,7 @@
 import type { SearchResultGroup } from '@/types'
 import { normalizeSearch } from '@/utils/format'
 import { customerService } from './customerService'
+import { quoteService } from './quoteService'
 import { serviceOrderService } from './serviceOrderService'
 import { vehicleService } from './vehicleService'
 
@@ -8,7 +9,7 @@ export const searchService = {
   search(query: string): SearchResultGroup {
     const q = normalizeSearch(query)
     if (!q) {
-      return { customers: [], vehicles: [], orders: [] }
+      return { customers: [], vehicles: [], orders: [], quotes: [] }
     }
 
     const customers = customerService.search(query).slice(0, 8)
@@ -34,6 +35,20 @@ export const searchService = {
         }
       })
 
-    return { customers, vehicles, orders }
+    const quotes = quoteService
+      .search(query)
+      .slice(0, 8)
+      .map((quote) => {
+        const customer = customerService.getById(quote.customerId)
+        const vehicle = vehicleService.getById(quote.vehicleId)
+        return {
+          ...quote,
+          customerName: customer?.name ?? '—',
+          vehicleLabel: vehicle ? `${vehicle.brand} ${vehicle.model}` : '—',
+          plate: vehicle?.plate ?? '—',
+        }
+      })
+
+    return { customers, vehicles, orders, quotes }
   },
 }

@@ -1,4 +1,4 @@
-import type { ServiceOrder, StockMovement } from '@/types'
+import type { ServiceOrder, StockMovement, WarrantyUnit } from '@/types'
 
 function item(
   id: string,
@@ -8,6 +8,12 @@ function item(
   quantity: number,
   unitPrice: number,
   discount = 0,
+  warranty?: {
+    duration: number
+    unit: WarrantyUnit
+    startDate: string
+    endDate: string
+  },
 ) {
   return {
     id,
@@ -18,6 +24,14 @@ function item(
     unitPrice,
     discount,
     total: quantity * unitPrice - discount,
+    ...(warranty
+      ? {
+          warrantyDuration: warranty.duration,
+          warrantyUnit: warranty.unit,
+          warrantyStartDate: warranty.startDate,
+          warrantyEndDate: warranty.endDate,
+        }
+      : {}),
   }
 }
 
@@ -35,8 +49,18 @@ export const seedOrders: ServiceOrder[] = [
       'Cliente solicita instalação de multimídia e verificação da câmera de ré, que apresenta falhas intermitentes.',
     internalNotes: 'Testar câmera após instalação. Cliente aguarda no local.',
     items: [
-      item('osi_001_1', 'PRODUCT', 'prod_001', 'Multimídia Pioneer DMH-A4480BT', 1, 1800),
-      item('osi_001_2', 'PRODUCT', 'prod_003', 'Câmera de Ré Universal', 1, 180),
+      item('osi_001_1', 'PRODUCT', 'prod_001', 'Multimídia Pioneer DMH-A4480BT', 1, 1800, 0, {
+        duration: 12,
+        unit: 'MONTHS',
+        startDate: '2026-10-05',
+        endDate: '2027-10-05',
+      }),
+      item('osi_001_2', 'PRODUCT', 'prod_003', 'Câmera de Ré Universal', 1, 180, 0, {
+        duration: 6,
+        unit: 'MONTHS',
+        startDate: '2026-10-05',
+        endDate: '2027-04-05',
+      }),
       item('osi_001_3', 'SERVICE', 'svc_001', 'Instalação de multimídia', 1, 250),
     ],
     subtotal: 2230,
@@ -48,6 +72,8 @@ export const seedOrders: ServiceOrder[] = [
       { id: 'osh_001_3', status: 'FINISHED', changedAt: '2026-10-05T14:30:00.000Z' },
     ],
     stockDeducted: true,
+    sourceQuoteId: 'quote_045',
+    sourceQuoteNumber: '00045',
     createdAt: '2026-10-05T09:00:00.000Z',
     updatedAt: '2026-10-05T14:30:00.000Z',
   },
@@ -63,7 +89,12 @@ export const seedOrders: ServiceOrder[] = [
     customerRequest: 'Aplicação de insulfilm G20 nos vidros laterais e traseiro.',
     internalNotes: '',
     items: [
-      item('osi_002_1', 'PRODUCT', 'prod_011', 'Insulfilm G20 Rolo 1,5m', 1, 350),
+      item('osi_002_1', 'PRODUCT', 'prod_011', 'Insulfilm G20 Rolo 1,5m', 1, 350, 0, {
+        duration: 12,
+        unit: 'MONTHS',
+        startDate: '2025-03-17',
+        endDate: '2026-03-17',
+      }),
       item('osi_002_2', 'SERVICE', 'svc_007', 'Aplicação de insulfilm', 1, 100),
     ],
     subtotal: 450,
@@ -137,6 +168,8 @@ export const seedOrders: ServiceOrder[] = [
     customerId: 'cust_003',
     vehicleId: 'veh_004',
     status: 'DELIVERED',
+    sourceQuoteId: 'quote_059',
+    sourceQuoteNumber: '00059',
     entryDate: '2026-08-15',
     deliveryForecast: '2026-08-15',
     currentKm: 42100,

@@ -103,6 +103,8 @@ export const serviceOrderService = {
     items?: ServiceOrderItem[]
     discount?: number
     status?: ServiceOrderStatus
+    sourceQuoteId?: string
+    sourceQuoteNumber?: string
   }): ServiceOrder {
     const orders = getOrders()
     const items = input.items ?? []
@@ -129,6 +131,8 @@ export const serviceOrderService = {
       total: totals.total,
       statusHistory: history,
       stockDeducted: false,
+      sourceQuoteId: input.sourceQuoteId,
+      sourceQuoteNumber: input.sourceQuoteNumber,
       createdAt: nowISO(),
       updatedAt: nowISO(),
     }

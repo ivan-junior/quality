@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Plus, Search, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
+import { NumberInput } from '@/components/NumberInput'
 import { PageHeader } from '@/components/PageHeader'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
@@ -134,21 +135,20 @@ export function ServicesPage() {
               </div>
               <div className="grid gap-1.5">
                 <Label>Preço padrão</Label>
-                <Input
-                  type="number"
+                <NumberInput
                   value={form.defaultPrice}
-                  onChange={(e) => setForm({ ...form, defaultPrice: Number(e.target.value) || 0 })}
+                  onValueChange={(v) => setForm({ ...form, defaultPrice: v ?? 0 })}
+                  min={0}
                 />
               </div>
             </div>
             <div className="grid gap-1.5">
               <Label>Tempo estimado (min)</Label>
-              <Input
-                type="number"
+              <NumberInput
                 value={form.estimatedMinutes}
-                onChange={(e) =>
-                  setForm({ ...form, estimatedMinutes: Number(e.target.value) || 0 })
-                }
+                onValueChange={(v) => setForm({ ...form, estimatedMinutes: v ?? 0 })}
+                allowDecimal={false}
+                min={0}
               />
             </div>
             <div className="grid gap-1.5">

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
+import { NumberInput } from '@/components/NumberInput'
 import { PageHeader } from '@/components/PageHeader'
 import { StockBadge } from '@/components/StockBadge'
 import { Button } from '@/components/ui/button'
@@ -201,11 +202,11 @@ export function StockPage() {
             </div>
             <div className="grid gap-1.5">
               <Label>{form.type === 'ADJUST' ? 'Novo saldo' : 'Quantidade'}</Label>
-              <Input
-                type="number"
-                min={0}
+              <NumberInput
                 value={form.quantity}
-                onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) || 0 })}
+                onValueChange={(v) => setForm({ ...form, quantity: v ?? 0 })}
+                allowDecimal={false}
+                min={0}
               />
             </div>
             <div className="grid gap-1.5">

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { LineItemsEditor } from '@/components/LineItemsEditor'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,26 +16,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   customerService,
-  productService,
-  serviceCatalogService,
   serviceOrderService,
   vehicleService,
 } from '@/services'
-import type { Customer, ItemType, ServiceOrderItem, Vehicle } from '@/types'
+import type { Customer, ServiceOrderItem, Vehicle } from '@/types'
 import {
-  calcItemTotal,
-  calcOrderTotals,
-  formatCurrency,
   formatPlate,
-  generateId,
   maskDocument,
   maskPhone,
   todayISODate,
@@ -75,14 +63,6 @@ export function ServiceOrderNewPage() {
   const [internalNotes, setInternalNotes] = useState('')
   const [orderDiscount, setOrderDiscount] = useState(0)
   const [items, setItems] = useState<ServiceOrderItem[]>([])
-  const [itemDialog, setItemDialog] = useState(false)
-  const [itemForm, setItemForm] = useState({
-    type: 'PRODUCT' as ItemType,
-    referenceId: '',
-    quantity: 1,
-    unitPrice: 0,
-    discount: 0,
-  })
 
   const customers = useMemo(() => {
     const DEMO_CUSTOMER_ID = 'cust_013' // Sarah Codognoto — sempre primeiro na demo
@@ -97,9 +77,6 @@ export function ServiceOrderNewPage() {
     ? vehicleService.getByCustomer(selectedCustomer.id)
     : []
   const plateMatch = plateQuery ? vehicleService.getByPlate(plateQuery) : undefined
-  const catalog =
-    itemForm.type === 'PRODUCT' ? productService.list() : serviceCatalogService.list()
-  const totals = calcOrderTotals(items, orderDiscount)
 
   function createCustomer() {
     if (!customerForm.name || !customerForm.phone) {
@@ -135,34 +112,6 @@ export function ServiceOrderNewPage() {
     setVehicleDialog(false)
     toast.success('Veículo cadastrado')
     setStep(3)
-  }
-
-  function addItem() {
-    const ref =
-      itemForm.type === 'PRODUCT'
-        ? productService.getById(itemForm.referenceId)
-        : serviceCatalogService.getById(itemForm.referenceId)
-    if (!ref) {
-      toast.error('Selecione um item')
-      return
-    }
-    const description = ref.name
-    const unitPrice =
-      itemForm.unitPrice ||
-      ('salePrice' in ref ? ref.salePrice : (ref as { defaultPrice: number }).defaultPrice)
-    const item: ServiceOrderItem = {
-      id: generateId('osi'),
-      type: itemForm.type,
-      referenceId: itemForm.referenceId,
-      description,
-      quantity: itemForm.quantity,
-      unitPrice,
-      discount: itemForm.discount,
-      total: calcItemTotal(itemForm.quantity, unitPrice, itemForm.discount),
-    }
-    setItems((prev) => [...prev, item])
-    setItemDialog(false)
-    setItemForm({ type: 'PRODUCT', referenceId: '', quantity: 1, unitPrice: 0, discount: 0 })
   }
 
   function saveOrder() {
@@ -382,61 +331,17 @@ export function ServiceOrderNewPage() {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader>
               <CardTitle>Itens da ordem</CardTitle>
-              <Button size="sm" onClick={() => setItemDialog(true)}>
-                + Adicionar item
-              </Button>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {items.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhum item adicionado.</p>
-              ) : (
-                items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col gap-2 rounded-md border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div>
-                      <p className="font-medium">{item.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.type === 'PRODUCT' ? 'Produto' : 'Serviço'} · Qtd {item.quantity} ·{' '}
-                        {formatCurrency(item.unitPrice)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold">{formatCurrency(item.total)}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setItems((prev) => prev.filter((i) => i.id !== item.id))}
-                      >
-                        Remover
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-
-              <div className="rounded-md bg-muted/50 p-4 text-sm">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>{formatCurrency(totals.subtotal)}</span>
-                </div>
-                <div className="mt-2 flex items-center justify-between gap-3">
-                  <Label>Desconto</Label>
-                  <Input
-                    type="number"
-                    className="w-32"
-                    value={orderDiscount}
-                    onChange={(e) => setOrderDiscount(Number(e.target.value) || 0)}
-                  />
-                </div>
-                <div className="mt-3 flex justify-between text-base font-semibold">
-                  <span>Total</span>
-                  <span>{formatCurrency(totals.total)}</span>
-                </div>
-              </div>
+            <CardContent>
+              <LineItemsEditor
+                items={items}
+                onChange={setItems}
+                orderDiscount={orderDiscount}
+                onOrderDiscountChange={setOrderDiscount}
+                suggestedWarrantyStart={deliveryForecast || entryDate}
+              />
             </CardContent>
           </Card>
 
@@ -548,105 +453,6 @@ export function ServiceOrderNewPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={itemDialog} onOpenChange={setItemDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar item</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-3">
-            <div className="grid gap-1.5">
-              <Label>Tipo</Label>
-              <Select
-                value={itemForm.type}
-                onValueChange={(value) =>
-                  setItemForm({
-                    ...itemForm,
-                    type: value as ItemType,
-                    referenceId: '',
-                    unitPrice: 0,
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PRODUCT">Produto</SelectItem>
-                  <SelectItem value="SERVICE">Serviço</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Produto/Serviço</Label>
-              <Select
-                value={itemForm.referenceId}
-                onValueChange={(value) => {
-                  const ref =
-                    itemForm.type === 'PRODUCT'
-                      ? productService.getById(value)
-                      : serviceCatalogService.getById(value)
-                  const unitPrice = ref
-                    ? 'salePrice' in ref
-                      ? ref.salePrice
-                      : ref.defaultPrice
-                    : 0
-                  setItemForm({ ...itemForm, referenceId: value, unitPrice })
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {catalog.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="grid gap-1.5">
-                <Label>Qtd</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={itemForm.quantity}
-                  onChange={(e) =>
-                    setItemForm({ ...itemForm, quantity: Number(e.target.value) || 1 })
-                  }
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label>Valor unit.</Label>
-                <Input
-                  type="number"
-                  value={itemForm.unitPrice}
-                  onChange={(e) =>
-                    setItemForm({ ...itemForm, unitPrice: Number(e.target.value) || 0 })
-                  }
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label>Desconto</Label>
-                <Input
-                  type="number"
-                  value={itemForm.discount}
-                  onChange={(e) =>
-                    setItemForm({ ...itemForm, discount: Number(e.target.value) || 0 })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setItemDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={addItem}>Adicionar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

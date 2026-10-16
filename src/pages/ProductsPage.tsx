@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Package, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
+import { NumberInput } from '@/components/NumberInput'
 import { PageHeader } from '@/components/PageHeader'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
@@ -49,7 +50,21 @@ export function ProductsPage() {
       toast.error('Informe o nome do produto')
       return
     }
-    productService.create(form)
+    if (
+      [form.costPrice, form.salePrice, form.stock, form.minStock].some(
+        (n) => n == null || Number.isNaN(n) || n < 0,
+      )
+    ) {
+      toast.error('Valores numéricos inválidos')
+      return
+    }
+    productService.create({
+      ...form,
+      costPrice: form.costPrice ?? 0,
+      salePrice: form.salePrice ?? 0,
+      stock: form.stock ?? 0,
+      minStock: form.minStock ?? 0,
+    })
     toast.success('Produto cadastrado')
     setForm(emptyForm)
     setOpen(false)
@@ -150,36 +165,38 @@ export function ProductsPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-1.5">
                 <Label>Preço de custo</Label>
-                <Input
-                  type="number"
+                <NumberInput
                   value={form.costPrice}
-                  onChange={(e) => setForm({ ...form, costPrice: Number(e.target.value) || 0 })}
+                  onValueChange={(v) => setForm({ ...form, costPrice: v ?? 0 })}
+                  min={0}
                 />
               </div>
               <div className="grid gap-1.5">
                 <Label>Preço de venda</Label>
-                <Input
-                  type="number"
+                <NumberInput
                   value={form.salePrice}
-                  onChange={(e) => setForm({ ...form, salePrice: Number(e.target.value) || 0 })}
+                  onValueChange={(v) => setForm({ ...form, salePrice: v ?? 0 })}
+                  min={0}
                 />
               </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="grid gap-1.5">
                 <Label>Estoque atual</Label>
-                <Input
-                  type="number"
+                <NumberInput
                   value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: Number(e.target.value) || 0 })}
+                  onValueChange={(v) => setForm({ ...form, stock: v ?? 0 })}
+                  allowDecimal={false}
+                  min={0}
                 />
               </div>
               <div className="grid gap-1.5">
                 <Label>Estoque mínimo</Label>
-                <Input
-                  type="number"
+                <NumberInput
                   value={form.minStock}
-                  onChange={(e) => setForm({ ...form, minStock: Number(e.target.value) || 0 })}
+                  onValueChange={(v) => setForm({ ...form, minStock: v ?? 0 })}
+                  allowDecimal={false}
+                  min={0}
                 />
               </div>
             </div>

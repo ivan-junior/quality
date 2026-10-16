@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   ClipboardList,
+  FileText,
   Users,
   Car,
   Package,
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/ordens', label: 'Ordens de Serviço', icon: ClipboardList },
+  { to: '/orcamentos', label: 'Orçamentos', icon: FileText },
   { to: '/clientes', label: 'Clientes', icon: Users },
   { to: '/veiculos', label: 'Veículos', icon: Car },
   { to: '/produtos', label: 'Produtos', icon: Package },
