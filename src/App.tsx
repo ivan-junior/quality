@@ -12,6 +12,11 @@ import { ServiceOrderNewPage } from '@/pages/ServiceOrderNewPage'
 import { ServiceOrderDetailPage } from '@/pages/ServiceOrderDetailPage'
 import { ServiceOrderEditPage } from '@/pages/ServiceOrderEditPage'
 import { ServiceOrderPrintPage } from '@/pages/ServiceOrderPrintPage'
+import { QuotesPage } from '@/pages/QuotesPage'
+import { QuoteNewPage } from '@/pages/QuoteNewPage'
+import { QuoteDetailPage } from '@/pages/QuoteDetailPage'
+import { QuoteEditPage } from '@/pages/QuoteEditPage'
+import { QuotePrintPage } from '@/pages/QuotePrintPage'
 import { ProductsPage } from '@/pages/ProductsPage'
 import { ServicesPage } from '@/pages/ServicesPage'
 import { StockPage } from '@/pages/StockPage'
@@ -26,12 +31,17 @@ export default function App() {
       <Toaster richColors position="top-right" closeButton />
       <Routes>
         <Route path="/ordens/:id/imprimir" element={<ServiceOrderPrintPage />} />
+        <Route path="/orcamentos/:id/imprimir" element={<QuotePrintPage />} />
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/ordens" element={<ServiceOrdersPage />} />
           <Route path="/ordens/nova" element={<ServiceOrderNewPage />} />
           <Route path="/ordens/:id" element={<ServiceOrderDetailPage />} />
           <Route path="/ordens/:id/editar" element={<ServiceOrderEditPage />} />
+          <Route path="/orcamentos" element={<QuotesPage />} />
+          <Route path="/orcamentos/novo" element={<QuoteNewPage />} />
+          <Route path="/orcamentos/:id" element={<QuoteDetailPage />} />
+          <Route path="/orcamentos/:id/editar" element={<QuoteEditPage />} />
           <Route path="/clientes" element={<CustomersPage />} />
           <Route path="/clientes/:id" element={<CustomerDetailPage />} />
           <Route path="/veiculos" element={<VehiclesPage />} />

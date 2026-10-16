@@ -6,7 +6,9 @@ export const STORAGE_KEYS = {
   products: `${PREFIX}.products`,
   services: `${PREFIX}.services`,
   orders: `${PREFIX}.orders`,
+  quotes: `${PREFIX}.quotes`,
   stockMovements: `${PREFIX}.stockMovements`,
+  companySettings: `${PREFIX}.companySettings`,
   meta: `${PREFIX}.meta`,
 } as const
 

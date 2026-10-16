@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Printer, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { StatusBadge } from '@/components/StatusBadge'
+import { WarrantyStatusBadge } from '@/components/WarrantyStatusBadge'
+import { WhatsAppShareButton } from '@/components/WhatsAppShareButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -24,6 +26,8 @@ import { useRefresh } from '@/hooks/useRefresh'
 import { customerService, serviceOrderService, vehicleService } from '@/services'
 import type { ServiceOrderStatus } from '@/types'
 import { formatCurrency, formatDate, formatDateTime } from '@/utils/format'
+import { formatWarrantyDuration, hasWarrantyInfo } from '@/utils/warranty'
+import { buildOrderWhatsAppMessage } from '@/utils/whatsapp'
 
 export function ServiceOrderDetailPage() {
   const { id } = useParams()
@@ -46,6 +50,8 @@ export function ServiceOrderDetailPage() {
 
   const customer = customerService.getById(order.customerId)
   const vehicle = vehicleService.getById(order.vehicleId)
+  const vehicleLabel = vehicle ? `${vehicle.brand} ${vehicle.model}` : '—'
+  const whatsappPhone = customer?.whatsapp || customer?.phone || ''
 
   function changeStatus() {
     serviceOrderService.updateStatus(order!.id, nextStatus)
@@ -77,12 +83,22 @@ export function ServiceOrderDetailPage() {
         >
           Alterar status
         </Button>
-        <Button asChild size="sm">
+        <Button asChild size="sm" variant="outline">
           <Link to={`/ordens/${order.id}/imprimir`} target="_blank">
             <Printer className="h-4 w-4" />
-            Imprimir / Gerar PDF
+            Gerar PDF
           </Link>
         </Button>
+        <WhatsAppShareButton
+          phone={whatsappPhone}
+          message={buildOrderWhatsAppMessage({
+            customerName: customer?.name ?? 'Cliente',
+            orderNumber: order.number,
+            vehicleLabel,
+            plate: vehicle?.plate ?? '—',
+            total: order.total,
+          })}
+        />
       </div>
 
       <div className="rounded-lg border bg-card p-6">
@@ -93,6 +109,17 @@ export function ServiceOrderDetailPage() {
               Entrada {formatDate(order.entryDate)}
               {order.deliveryForecast ? ` · Previsão ${formatDate(order.deliveryForecast)}` : ''}
             </p>
+            {order.sourceQuoteId && order.sourceQuoteNumber ? (
+              <p className="mt-2 text-sm">
+                Originada do orçamento{' '}
+                <Link
+                  to={`/orcamentos/${order.sourceQuoteId}`}
+                  className="font-medium text-primary hover:underline"
+                >
+                  #{order.sourceQuoteNumber}
+                </Link>
+              </p>
+            ) : null}
           </div>
           <StatusBadge status={order.status} />
         </div>
@@ -168,12 +195,24 @@ export function ServiceOrderDetailPage() {
         <CardContent className="space-y-3">
           {order.items.map((item) => (
             <div key={item.id} className="flex items-start justify-between gap-3 border-b pb-3 last:border-0">
-              <div>
+              <div className="space-y-1">
                 <p className="font-medium">{item.description}</p>
                 <p className="text-xs text-muted-foreground">
                   {item.type === 'PRODUCT' ? 'Produto' : 'Serviço'} · Qtd {item.quantity} ·{' '}
                   {formatCurrency(item.unitPrice)}
                 </p>
+                {item.type === 'PRODUCT' ? (
+                  <div className="space-y-1">
+                    {hasWarrantyInfo(item) ? (
+                      <p className="text-xs text-muted-foreground">
+                        Garantia: {formatWarrantyDuration(item.warrantyDuration!, item.warrantyUnit!)}
+                        {' · '}Início: {formatDate(item.warrantyStartDate)}
+                        {' · '}Vencimento: {formatDate(item.warrantyEndDate)}
+                      </p>
+                    ) : null}
+                    <WarrantyStatusBadge item={item} />
+                  </div>
+                ) : null}
               </div>
               <p className="font-semibold">{formatCurrency(item.total)}</p>
             </div>

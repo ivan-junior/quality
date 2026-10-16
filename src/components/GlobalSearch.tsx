@@ -4,7 +4,8 @@ import { Search } from 'lucide-react'
 import { searchService } from '@/services'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { STATUS_LABELS } from '@/lib/constants'
+import { QUOTE_STATUS_LABELS, STATUS_LABELS } from '@/lib/constants'
+import { getEffectiveQuoteStatus } from '@/services/quoteService'
 import { formatCurrency } from '@/utils/format'
 
 interface GlobalSearchProps {
@@ -24,7 +25,10 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   }
 
   const hasResults =
-    results.customers.length > 0 || results.vehicles.length > 0 || results.orders.length > 0
+    results.customers.length > 0 ||
+    results.vehicles.length > 0 ||
+    results.orders.length > 0 ||
+    results.quotes.length > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -37,7 +41,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar cliente, telefone, CPF, placa, modelo ou nº OS..."
+              placeholder="Buscar cliente, placa, OS, orçamento..."
               className="border-0 shadow-none focus-visible:ring-0 px-0"
             />
           </div>
@@ -45,7 +49,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         <div className="max-h-[60vh] overflow-y-auto p-3">
           {!query.trim() ? (
             <p className="px-2 py-8 text-center text-sm text-muted-foreground">
-              Digite para buscar em clientes, veículos e ordens de serviço.
+              Digite para buscar em clientes, veículos, OS e orçamentos.
             </p>
           ) : !hasResults ? (
             <p className="px-2 py-8 text-center text-sm text-muted-foreground">
@@ -129,6 +133,38 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                         </div>
                       </button>
                     ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {results.quotes.length > 0 ? (
+                <section>
+                  <h4 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Orçamentos
+                  </h4>
+                  <div className="space-y-1">
+                    {results.quotes.map((q) => {
+                      const status = getEffectiveQuoteStatus(q)
+                      return (
+                        <button
+                          key={q.id}
+                          type="button"
+                          onClick={() => go(`/orcamentos/${q.id}`)}
+                          className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left hover:bg-muted"
+                        >
+                          <div>
+                            <span className="font-medium">Orçamento #{q.number}</span>
+                            <div className="text-xs text-muted-foreground">
+                              {q.customerName} · {q.vehicleLabel} · {q.plate}
+                            </div>
+                          </div>
+                          <div className="text-right text-xs">
+                            <div className="font-medium">{formatCurrency(q.total)}</div>
+                            <div className="text-muted-foreground">{QUOTE_STATUS_LABELS[status]}</div>
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </section>
               ) : null}

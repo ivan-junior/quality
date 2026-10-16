@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { DocumentReviewQr, DocumentSocialFooter } from '@/components/DocumentExtras'
 import { Button } from '@/components/ui/button'
-import { BRAND } from '@/lib/constants'
-import { customerService, serviceOrderService, vehicleService } from '@/services'
+import { companySettingsService, customerService, serviceOrderService, vehicleService } from '@/services'
 import { formatCurrency, formatDate } from '@/utils/format'
+import { formatWarrantyDuration, hasWarrantyInfo } from '@/utils/warranty'
 
 export function ServiceOrderPrintPage() {
   const { id } = useParams()
@@ -11,6 +12,7 @@ export function ServiceOrderPrintPage() {
   const order = id ? serviceOrderService.getById(id) : undefined
   const customer = order ? customerService.getById(order.customerId) : undefined
   const vehicle = order ? vehicleService.getById(order.vehicleId) : undefined
+  const settings = companySettingsService.get()
 
   useEffect(() => {
     if (order) {
@@ -39,11 +41,11 @@ export function ServiceOrderPrintPage() {
 
       <div className="print-area mx-auto max-w-3xl p-8">
         <div className="flex items-start justify-between border-b border-neutral-300 pb-4">
-          <img src={BRAND.logo} alt={BRAND.name} className="h-14 w-auto object-contain" />
+          <img src={settings.logo || '/quality-logo.png'} alt={settings.name} className="h-14 w-auto object-contain" />
           <div className="text-right text-sm">
-            <p className="font-semibold">{BRAND.name}</p>
-            <p>Tel: {BRAND.phone}</p>
-            <p>Ribeirão Preto / SP</p>
+            <p className="font-semibold">{settings.name}</p>
+            {settings.phone ? <p>Tel: {settings.phone}</p> : null}
+            {settings.address ? <p>{settings.address}</p> : <p>Ribeirão Preto / SP</p>}
           </div>
         </div>
 
@@ -124,8 +126,23 @@ export function ServiceOrderPrintPage() {
             </thead>
             <tbody>
               {order.items.map((item) => (
-                <tr key={item.id} className="border-b border-neutral-200">
-                  <td className="py-2">{item.description}</td>
+                <tr key={item.id} className="border-b border-neutral-200 align-top">
+                  <td className="py-2">
+                    <div>{item.description}</div>
+                    {item.type === 'PRODUCT' ? (
+                      hasWarrantyInfo(item) ? (
+                        <div className="mt-1 text-xs text-neutral-600">
+                          Garantia informada:{' '}
+                          {formatWarrantyDuration(item.warrantyDuration!, item.warrantyUnit!)}
+                          <br />
+                          Início: {formatDate(item.warrantyStartDate)} · Vencimento:{' '}
+                          {formatDate(item.warrantyEndDate)}
+                        </div>
+                      ) : (
+                        <div className="mt-1 text-xs text-neutral-600">Garantia não informada</div>
+                      )
+                    ) : null}
+                  </td>
                   <td className="py-2">{item.quantity}</td>
                   <td className="py-2">{formatCurrency(item.unitPrice)}</td>
                   <td className="py-2 text-right">{formatCurrency(item.total)}</td>
@@ -156,16 +173,20 @@ export function ServiceOrderPrintPage() {
           <p className="whitespace-pre-wrap text-sm">{order.internalNotes || '—'}</p>
         </section>
 
+        <DocumentReviewQr settings={settings} />
+
         <div className="mt-16 grid grid-cols-2 gap-10 text-sm">
           <div className="text-center">
             <div className="mb-2 border-t border-neutral-500 pt-2">
-              Responsável Quality Sound & Film
+              Responsável {settings.name}
             </div>
           </div>
           <div className="text-center">
             <div className="mb-2 border-t border-neutral-500 pt-2">Cliente</div>
           </div>
         </div>
+
+        <DocumentSocialFooter settings={settings} />
       </div>
     </div>
   )

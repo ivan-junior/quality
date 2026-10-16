@@ -6,7 +6,20 @@ export type ServiceOrderStatus =
   | 'DELIVERED'
   | 'CANCELLED'
 
+export type QuoteStatus =
+  | 'DRAFT'
+  | 'SENT'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'CONVERTED'
+
+export type QuoteFilterStatus = QuoteStatus | 'EXPIRED' | 'ALL'
+
 export type ItemType = 'PRODUCT' | 'SERVICE'
+
+export type WarrantyUnit = 'DAYS' | 'MONTHS'
+
+export type WarrantyStatus = 'ACTIVE' | 'EXPIRED' | 'NOT_STARTED' | 'NOT_INFORMED'
 
 export type StockMovementType = 'IN' | 'OUT' | 'ADJUST'
 
@@ -66,7 +79,13 @@ export interface ServiceOrderItem {
   unitPrice: number
   discount: number
   total: number
+  warrantyDuration?: number
+  warrantyUnit?: WarrantyUnit
+  warrantyStartDate?: string
+  warrantyEndDate?: string
 }
+
+export type QuoteItem = ServiceOrderItem
 
 export interface StatusHistoryEntry {
   id: string
@@ -92,8 +111,42 @@ export interface ServiceOrder {
   total: number
   statusHistory: StatusHistoryEntry[]
   stockDeducted: boolean
+  sourceQuoteId?: string
+  sourceQuoteNumber?: string
   createdAt: string
   updatedAt: string
+}
+
+export interface Quote {
+  id: string
+  number: string
+  customerId: string
+  vehicleId: string
+  status: QuoteStatus
+  issueDate: string
+  validUntil: string
+  customerRequest: string
+  notes: string
+  items: QuoteItem[]
+  subtotal: number
+  discount: number
+  total: number
+  convertedServiceOrderId?: string
+  convertedServiceOrderNumber?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CompanySettings {
+  name: string
+  phone: string
+  whatsapp: string
+  instagram: string
+  facebook: string
+  website: string
+  googleReviewUrl: string
+  address: string
+  logo: string
 }
 
 export interface StockMovement {
@@ -112,6 +165,13 @@ export interface SearchResultGroup {
   vehicles: Array<Vehicle & { customerName: string }>
   orders: Array<
     ServiceOrder & {
+      customerName: string
+      vehicleLabel: string
+      plate: string
+    }
+  >
+  quotes: Array<
+    Quote & {
       customerName: string
       vehicleLabel: string
       plate: string
